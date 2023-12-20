@@ -130,6 +130,18 @@ router.get("/:pokemonId", (req, res, next) => {
 
 router.post("/", (req, res, next) => {
   //post input validation
+  const allowData = [
+    "id",
+    "name",
+    "description",
+    "height",
+    "weight",
+    "category",
+    "abilities",
+    "types",
+    "url",
+  ];
+
   const pokemonTypes = [
     "bug",
     "dragon",
@@ -150,6 +162,7 @@ router.post("/", (req, res, next) => {
     "rock",
     "water",
   ];
+
   try {
     const {
       id,
@@ -162,53 +175,23 @@ router.post("/", (req, res, next) => {
       types,
       url,
     } = req.body;
-    if (
-      !id ||
-      !name ||
-      !description ||
-      !height ||
-      !weight ||
-      !category ||
-      !abilities ||
-      !types ||
-      !url
-    ) {
+
+    if (!id || !name || !types || !url) {
       const exception = new Error(`Missing required data.`);
       exception.statusCode = 401;
       throw exception;
     }
 
-    // validate input data type
-    const numberInput = { id, height, weight };
-    const numberKeys = Object.keys(numberInput);
-
-    numberKeys.forEach((key) => {
-      if (typeof numberInput[key] !== "number") {
-        const exception = new Error(`Key ${key} must be a number`);
-        exception.statusCode = 401;
-        throw exception;
-      }
-    });
-
-    const stringInput = { name, description, category, url };
-    const stringKeys = Object.keys(stringInput);
-
-    stringKeys.forEach((key) => {
-      if (typeof stringInput[key] !== "string") {
-        const exception = new Error(`Key ${key} must be string`);
-        exception.statusCode = 401;
-        throw exception;
-      }
-    });
-
     const arrayInput = { abilities, types };
     const arrayKeys = Object.keys(arrayInput);
 
     arrayKeys.forEach((key) => {
-      if (typeof arrayInput[key] !== "object") {
-        const exception = new Error(`Key ${key} must be an array`);
-        exception.statusCode = 401;
-        throw exception;
+      if (arrayInput[key]) {
+        if (typeof arrayInput[key] !== "object") {
+          const exception = new Error(`Key ${key} must be an array`);
+          exception.statusCode = 401;
+          throw exception;
+        }
       }
     });
 
@@ -249,13 +232,13 @@ router.post("/", (req, res, next) => {
 
     //post processing logic
     const newPokemon = {
-      id,
+      id: parseInt(id),
       name,
-      description,
-      height: `${height}'`,
-      weight: `${weight} lbs`,
-      category,
-      abilities,
+      description: description ? description : "",
+      height: height ? `${height}'` : `0'`,
+      weight: weight ? `${weight} lbs` : "0 lbs",
+      category: category ? category : "",
+      abilities: abilities ? abilities : [],
       types,
       url,
     };
@@ -313,35 +296,6 @@ router.put("/:pokemonId", (req, res, next) => {
       }
     });
 
-    //check input data type
-    const numberInput = ["height", "weight"];
-    const stringInput = ["name", "description", "category", "url"];
-    const arrayInput = ["abilities", "types"];
-
-    updateKeys.forEach((key) => {
-      if (numberInput.includes(key)) {
-        if (typeof updates[key] !== "number") {
-          const exception = new Error(`Update key ${key} must be number`);
-          exception.statusCode = 401;
-          throw exception;
-        }
-      }
-      if (stringInput.includes(key)) {
-        if (typeof updates[key] !== "string") {
-          const exception = new Error(`Update key ${key} must be string`);
-          exception.statusCode = 401;
-          throw exception;
-        }
-      }
-      if (arrayInput.includes(key)) {
-        if (typeof updates[key] !== "object") {
-          const exception = new Error(`Update key ${key} must be array`);
-          exception.statusCode = 401;
-          throw exception;
-        }
-      }
-    });
-
     //put processing login
     //Read data from pokemon.json then parse to JSobject
     let db = fs.readFileSync("pokemon.json", "utf-8");
@@ -359,7 +313,12 @@ router.put("/:pokemonId", (req, res, next) => {
     }
 
     //Update new content to db pokemon JS object
-    const updatedPokemon = { ...db.data[targetIndex], ...updates };
+    const updatedPokemon = {
+      ...db.data[targetIndex],
+      ...updates,
+      height: updates.height ? `${updates.height}'` : height,
+      weight: updates.weight ? `${updates.weight} lbs` : weight,
+    };
     db.data[targetIndex] = updatedPokemon;
 
     //write and save to pokemon.json
