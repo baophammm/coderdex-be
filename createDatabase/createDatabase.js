@@ -37,7 +37,7 @@ const createDatabase = async () => {
       category: category,
       abilities: abilities,
       types: typeList,
-      url: `http://localhost:${port}/images/${index + 1}.png`,
+      url: `https://coderdex-be-0ztf.onrender.com/images/${index + 1}.png`,
     };
 
     return newPokemon;
