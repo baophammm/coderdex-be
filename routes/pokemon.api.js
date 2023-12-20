@@ -188,7 +188,7 @@ router.post("/", (req, res, next) => {
     //find update requests that are not allowed
 
     newItemKeys.map((key) => {
-      if (!allowDa.includes(key)) {
+      if (!allowData.includes(key)) {
         const exception = new Error(`Key ${key} is not allowed`);
         exception.statusCode = 401;
         throw exception;
@@ -255,7 +255,6 @@ router.post("/", (req, res, next) => {
 
     //post send response
     res.status(200).json({ data: newPokemon });
-    // res.status(200).send(newPokemon);
   } catch (error) {
     next(error);
   }
@@ -322,15 +321,10 @@ router.put("/:pokemonId", (req, res, next) => {
     db.data[targetIndex] = updatedPokemon;
 
     //write and save to pokemon.json
-    //res send back only after write and save to pokemon.json
-
-    fs.writeFileSync("pokemon.json", JSON.stringify(db)).then(
-      res.status(200).json({ data: updatedPokemon })
-    );
+    fs.writeFileSync("pokemon.json", JSON.stringify(db));
 
     //put send response
-
-    // res.status(200).json({ data: updatedPokemon });
+    res.status(200).json({ data: updatedPokemon });
   } catch (error) {
     next(error);
   }
