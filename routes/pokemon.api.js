@@ -182,16 +182,16 @@ router.post("/", (req, res, next) => {
       throw exception;
     }
 
-    const arrayInput = { abilities, types };
-    const arrayKeys = Object.keys(arrayInput);
+    const newItem = req.body;
+    const newItemKeys = Object.keys(newItem);
 
-    arrayKeys.forEach((key) => {
-      if (arrayInput[key]) {
-        if (typeof arrayInput[key] !== "object") {
-          const exception = new Error(`Key ${key} must be an array`);
-          exception.statusCode = 401;
-          throw exception;
-        }
+    //find update requests that are not allowed
+
+    newItemKeys.map((key) => {
+      if (!allowDa.includes(key)) {
+        const exception = new Error(`Key ${key} is not allowed`);
+        exception.statusCode = 401;
+        throw exception;
       }
     });
 
@@ -322,11 +322,15 @@ router.put("/:pokemonId", (req, res, next) => {
     db.data[targetIndex] = updatedPokemon;
 
     //write and save to pokemon.json
-    fs.writeFileSync("pokemon.json", JSON.stringify(db));
+    //res send back only after write and save to pokemon.json
+
+    fs.writeFileSync("pokemon.json", JSON.stringify(db)).then(
+      res.status(200).json({ data: updatedPokemon })
+    );
 
     //put send response
 
-    res.status(200).json({ data: updatedPokemon });
+    // res.status(200).json({ data: updatedPokemon });
   } catch (error) {
     next(error);
   }
